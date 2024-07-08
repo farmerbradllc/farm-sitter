@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farm Animal Information Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .container {
+            display: flex;
+            width: 100%;
+        }
+        .left-column, .right-column {
+            flex: 1;
+        }
+        #animalForm {
+            margin-right: 20px;
+            width: 90%;
+        }
+        .right-column {
+            padding-left: 20px;
+        }
+        .left-column {
+            max-width: 400px;
+        }
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .card {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .card h3 {
+            margin-top: 0;
+        }
+        .card button {
+            background-color: #007bff;
+            margin-right: 10px;
+        }
+        .card button:hover {
+            background-color: #0056b3;
+        }
+        .farm-map {
+            position: relative;
+            width: 100%;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+        .farm-map img {
+            width: 100%;
+            height: auto;
+            transition: transform 0.25s ease;
+            transform-origin: center center;
+        }
+        .icon {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            transform: translate(-50%, -50%);
+        }
+        .icon img {
+            width: 100%;
+            height: 100%;
+        }
+        .icon:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: 35px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            white-space: nowrap;
+            z-index: 10;
+        }
+        .line {
+            stroke: black;
+            stroke-dasharray: 5;
+            stroke-width: 2;
+        }
+        .checklist {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .checklist h3 {
+            margin-top: 0;
+        }
+        .checklist table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .checklist th, .checklist td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .checklist th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Farm Animal Information Form</h1>
+
+    <div class="farm-map" id="farmMap" onclick="setCoordinates(event)">
+        <img id="farmImage" src="homestead.png" alt="Farm Aerial View">
+        <svg id="svgOverlay" class="line-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></svg>
+    </div>
+
+    <div class="container">
+        <div class="left-column">
+            <form id="animalForm">
+                <label for="name">Animal Group Name:</label>
+                <input type="text" id="name" name="name" placeholder="e.g., Laying Hens">
+
+                <label for="animalType">Animal Type:</label>
+                <select id="animalType" name="animalType">
+                    <option value="chickens">Chickens</option>
+                    <option value="ducks">Ducks</option>
+                    <option value="geese">Geese</option>
+                    <option value="sheep">Sheep</option>
+                    <option value="quail">Quail</option>
+                    <option value="cows">Cows</option>
+                    <option value="pigs">Pig</option>
+                </select>
+
+                <label for="location">Location on Farm:</label>
+                <input type="text" id="location" name="location" placeholder="e.g., Pasture, Pond, Barn">
+
+                <label for="number">Number of Animals:</label>
+                <input type="number" id="number" name="number" min="1" placeholder="e.g., 25">
+
+                <label for="feedType">Type of Feed:</label>
+                <input type="text" id="feedType" name="feedType" placeholder="e.g., Egg layer feed">
+
+                <label for="feedLocation">Feed Location on Map:</label>
+                <textarea id="feedLocation" name="feedLocation" rows="4" placeholder="Describe where the feed is located on the map"></textarea>
+
+                <label for="autoWatered">Automatically Watered:</label>
+                <input type="checkbox" id="autoWatered" name="autoWatered">
+
+                <input type="hidden" id="coordinates" name="coordinates">
+                <input type="hidden" id="feedCoordinates" name="feedCoordinates">
+
+                <button type="submit">Submit</button>
+            </form>
+
+            <button onclick="exportData()">Export Data</button>
+            <input type="file" id="importFile" onchange="importData(event)" style="margin-top: 10px;">
+            <div id="animalCards"></div>
+        </div>
+
+        <div class="right-column">
+            <div class="checklist">
+                <h3>Animal Checklist</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Animal Group</th>
+                            <th>Fed</th>
+                            <th>Watered</th>
+                        </tr>
+                    </thead>
+                    <tbody id="animalChecklist">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isSettingFeedLocation = false;
+        let isEditing = false;
+        let zoomLevel = 1;
+        const feedProximityThreshold = 2; // Threshold for considering locations as "nearby" in percentage
+
+        document.getElementById('animalForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const animalType = document.getElementById('animalType').value;
+            const location = document.getElementById('location').value;
+            const number = document.getElementById('number').value;
+            const feedType = document.getElementById('feedType').value;
+            const feedLocation = document.getElementById('feedLocation').value;
+            const autoWatered = document.getElementById('autoWatered').checked;
+            const coordinates = document.getElementById('coordinates').value || null;
+            const feedCoordinates = document.getElementById('feedCoordinates').value || null;
+
+            let animals = JSON.parse(localStorage.getItem('animals')) || [];
+            
+            if (isEditing) {
+                // Remove the old entry
+                animals = animals.filter(animal => animal.id !== isEditing);
+            }
+
+            const animalData = {
+                id: isEditing || Date.now(),
+                name,
+                animalType,
+                location,
+                number,
+                feedType,
+                feedLocation,
+                autoWatered,
+                coordinates: coordinates ? JSON.parse(coordinates) : null,
+                feedCoordinates: feedCoordinates ? JSON.parse(feedCoordinates) : null,
+                fed: false,
+                watered: autoWatered ? 'Auto' : false
+            };
+
+            animals.push(animalData);
+            localStorage.setItem('animals', JSON.stringify(animals));
+
+            displayAnimals();
+            displayIcons();
+            displayChecklist();
+            document.getElementById('animalForm').reset();
+            isEditing = false;
+        });
+
+        function displayAnimals() {
+            const animalCards = document.getElementById('animalCards');
+            animalCards.innerHTML = '';
+            
+            const animals = JSON.parse(localStorage.getItem('animals')) || [];
+            animals.sort((a, b) => a.animalType.localeCompare(b.animalType));
+
+            animals.forEach(animal => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.setAttribute('data-id', animal.id);
+                card.innerHTML = `
+                    <h3>${animal.name}</h3>
+                    <p><strong>Animal Type:</strong> ${animal.animalType.charAt(0).toUpperCase() + animal.animalType.slice(1)}</p>
+                    <p><strong>Location on Farm:</strong> <span class="location">${animal.location}</span></p>
+                    <p><strong>Number of Animals:</strong> <span class="number">${animal.number}</span></p>
+                    <p><strong>Type of Feed:</strong> <span class="feedType">${animal.feedType}</span></p>
+                    <p><strong>Feed Location on Map:</strong> <span class="feedLocation">${animal.feedLocation}</span></p>
+                    <p><strong>Automatically Watered:</strong> <span class="autoWatered">${animal.autoWatered ? 'Yes' : 'No'}</span></p>
+                    <button onclick="editAnimal(${animal.id})">Edit</button>
+                    <button onclick="deleteAnimal(${animal.id})">Delete</button>
+                `;
+                animalCards.appendChild(card);
+            });
+        }
+
+        function displayChecklist() {
+            const animalChecklist = document.getElementById('animalChecklist');
+            animalChecklist.innerHTML = '';
+
+            const animals = JSON.parse(localStorage.getItem('animals')) || [];
+
+            animals.forEach(animal => {
+                const checklistItem = document.createElement('tr');
+                checklistItem.innerHTML = `
+                    <td>${animal.name} (${animal.number} ${animal.animalType})</td>
+                    <td><input type="checkbox" ${animal.fed ? 'checked' : ''} onchange="toggleFed(${animal.id})"></td>
+                    <td>${animal.watered === 'Auto' ? 'Auto' : `<input type="checkbox" ${animal.watered ? 'checked' : ''} onchange="toggleWatered(${animal.id})">`}</td>
+                `;
+                animalChecklist.appendChild(checklistItem);
+            });
+        }
+
+        function toggleFed(id) {
+            const animals = JSON.parse(localStorage.getItem('animals')) || [];
+            const animal = animals.find(animal => animal.id === id);
+            animal.fed = !animal.fed;
+            localStorage.setItem('animals', JSON.stringify(animals));
+            displayChecklist();
+        }
+
+        function toggleWatered(id) {
+            const animals = JSON.parse(localStorage.getItem('animals')) || [];
+            const animal = animals.find(animal => animal.id === id);
+            animal.watered = !animal.watered;
+            localStorage.setItem('animals', JSON.stringify(animals));
+            displayChecklist();
+        }
+
+        function editAnimal(id) {
+            const animals = JSON.parse(localStorage.getItem('animals')) || [];
+            const animal = animals.find(animal => animal.id === id);
+
+            document.getElementById('name').value = animal.name;
+            document.getElementById('animalType').value = animal.animalType;
+            document.getElementById('location').value = animal.location;
+            document.getElementById('number').value = animal.number;
+            document.getElementById('feedType').value = animal.feedType;
+            document.getElementById('feedLocation').value = animal.feedLocation;
+            document.getElementById('autoWatered').checked = animal.autoWatered;
+            document.getElementById('coordinates').value = JSON.stringify(animal.coordinates);
+            document.getElementById('feedCoordinates').value = JSON.stringify(animal.feedCoordinates);
+
+            isEditing = animal.id;
+        }
+
+        function deleteAnimal(id) {
+            let animals = JSON.parse(localStorage.getItem('animals')) || [];
+            animals = animals.filter(animal => animal.id !== id);
+            localStorage.setItem('animals', JSON.stringify(animals));
+
+            displayAnimals();
+            displayIcons();
+            displayChecklist();
+        }
+
+        function printCards() {
+            const printWindow = window.open('', '_blank');
+            const animals = JSON.parse(localStorage.getItem('animals')) || [];
+            animals.sort((a, b) => a.animalType.localeCompare(b.animalType));
+
+            let content = '<h1>Farm Animal Information</h1>';
+            animals.forEach(animal => {
+                content += `
+                    <div class="card">
+                        <h3>${animal.name}</h3>
+                        <p><strong>Animal Type:</strong> ${animal.animalType.charAt(0).toUpperCase() + animal.animalType.slice(1)}</p>
+                        <p><strong>Location on Farm:</strong> ${animal.location}</p>
+                        <p><strong>Number of Animals:</strong> ${animal.number}</p>
+                        <p><strong>Type of Feed:</strong> ${animal.feedType}</p>
+                        <p><strong>Feed Location on Map:</strong> ${animal.feedLocation}</p>
+                        <p><strong>Automatically Watered:</strong> ${animal.autoWatered ? 'Yes' : 'No'}</p>
+                    </div>
+                `;
+            });
+
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Print Farm Animal Information</title>
+                        <style>
+                            body {
+                                font-family: Arial, sans-serif;
+                                padding: 20px;
+                            }
+                            .card {
+                                background-color: #fff;
+                                padding: 20px;
+                                border-radius: 8px;
+                                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                                margin-bottom: 20px;
+                            }
+                            .card h3 {
+                                margin-top: 0;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        ${content}
+                    </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        function setCoordinates(event) {
+            const farmMapImg = document.querySelector('#farmMap img');
+            const rect = farmMapImg.getBoundingClientRect();
+            const x = ((event.clientX - rect.left) / rect.width) * 100;
+            const y = ((event.clientY - rect.top) / rect.height) * 100;
+
+            if (isSettingFeedLocation) {
+                const feedCoordinates = { x, y };
+                const existingFeedLocation = checkNearbyFeedLocation(feedCoordinates);
+                if (existingFeedLocation) {
+                    if (confirm(`This location is near an existing feed location: ${existingFeedLocation.feedType}. Would you like to use the same location?`)) {
+                        document.getElementById('feedCoordinates').value = JSON.stringify(existingFeedLocation.coordinates);
+                    } else {
+                        alert('Please choose a different location for the feed.');
+                        return;
+                    }
+                } else {
+                    document.getElementById('feedCoordinates').value = JSON.stringify(feedCoordinates);
+                }
+                isSettingFeedLocation = false;
+                alert('Feed location set!');
+            } else {
+                document.getElementById('coordinates').value = JSON.stringify({ x, y });
+                isSettingFeedLocation = true;
+                alert('Animal location set! Now click to set the feed location.');
+            }
+        }
+
+        function checkNearbyFeedLocation(newCoordinates) {
+            const animals = JSON.parse(localStorage.getItem('animals')) || [];
+            for (const animal of animals) {
+                if (Math.abs(animal.feedCoordinates.x - newCoordinates.x) < feedProximityThreshold &&
+                    Math.abs(animal.feedCoordinates.y - newCoordinates.y) < feedProximityThreshold) {
+                    return { feedType: animal.feedType, coordinates: animal.feedCoordinates };
+                }
+            }
+            return null;
+        }
+
+        function displayIcons() {
+            const farmMap = document.getElementById('farmMap');
+            const farmMapImg = document.querySelector('#farmMap img');
+            farmMap.querySelectorAll('.icon').forEach(icon => icon.remove());
+
+            const animals = JSON.parse(localStorage.getItem('animals')) || [];
+            const feedLocations = {};
+
+            animals.forEach(animal => {
+                // Animal location icon
+                if (animal.coordinates) {
+                    const icon = document.createElement('div');
+                    icon.classList.add('icon');
+                    icon.style.left = `${animal.coordinates.x}%`;
+                    icon.style.top = `${animal.coordinates.y}%`;
+                    icon.setAttribute('data-tooltip', `${animal.name} (${animal.number} animals)`);
+                    icon.innerHTML = `<img src="${animal.animalType}-icon.png" alt="${animal.animalType}">`;
+                    icon.onmouseover = () => drawLine(animal.coordinates, animal.feedCoordinates);
+                    icon.onmouseout = () => removeLine();
+                    farmMap.appendChild(icon);
+                }
+
+                // Feed location icon
+                if (animal.feedCoordinates) {
+                    const key = `${animal.feedCoordinates.x}-${animal.feedCoordinates.y}`;
+                    if (!feedLocations[key]) {
+                        feedLocations[key] = new Set();
+                    }
+                    feedLocations[key].add(animal.feedType);
+
+                    const icon = document.createElement('div');
+                    icon.classList.add('icon');
+                    icon.style.left = `${animal.feedCoordinates.x}%`;
+                    icon.style.top = `${animal.feedCoordinates.y}%`;
+                    icon.setAttribute('data-tooltip', `Feed: ${Array.from(feedLocations[key]).values().next().value}`);
+                    icon.innerHTML = `<img src="feed-icon.png" alt="feed">`;
+                    farmMap.appendChild(icon);
+                }
+            });
+        }
+
+        function drawLine(start, end) {
+            if (!start || !end) return;
+
+            const svgOverlay = document.getElementById('svgOverlay');
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', `${start.x}%`);
+            line.setAttribute('y1', `${start.y}%`);
+            line.setAttribute('x2', `${end.x}%`);
+            line.setAttribute('y2', `${end.y}%`);
+            line.classList.add('line');
+            line.id = 'hoverLine';
+            svgOverlay.appendChild(line);
+        }
+
+        function removeLine() {
+            const line = document.getElementById('hoverLine');
+            if (line) {
+                line.remove();
+            }
+        }
+
+        function uploadImage() {
+            const imageUpload = document.getElementById('imageUpload').files[0];
+            if (imageUpload) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const base64Image = event.target.result;
+                    localStorage.setItem('farmImage', base64Image);
+                    document.getElementById('farmImage').src = base64Image;
+                };
+                reader.readAsDataURL(imageUpload);
+            }
+        }
+
+        function exportData() {
+            const animals = JSON.parse(localStorage.getItem('animals')) || [];
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(animals));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "farm_data.json");
+            document.body.appendChild(downloadAnchorNode); // required for firefox
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const content = e.target.result;
+                    try {
+                        const importedData = JSON.parse(content);
+                        if (Array.isArray(importedData)) {
+                            localStorage.setItem('animals', JSON.stringify(importedData));
+                            displayAnimals();
+                            displayIcons();
+                            displayChecklist();
+                        } else {
+                            alert("Invalid data format.");
+                        }
+                    } catch (err) {
+                        alert("Error reading file: " + err.message);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            displayAnimals();
+            displayIcons();
+            displayChecklist();
+            const storedImage = localStorage.getItem('farmImage');
+            if (storedImage) {
+                document.getElementById('farmImage').src = storedImage;
+            }
+        });
+    </script>
+
+</body>
+</html>
