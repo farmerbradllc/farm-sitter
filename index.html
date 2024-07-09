@@ -14,6 +14,12 @@
             flex-direction: column;
             gap: 20px;
         }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
         .container {
             display: flex;
             width: 100%;
@@ -139,11 +145,31 @@
         .checklist th {
             background-color: #f2f2f2;
         }
+        .button-container {
+            display: flex;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
 
-    <h1>Farm Animal Information Form</h1>
+    <div class="header">
+        <h1>Farm Animal Information Form</h1>
+        <div class="button-container">
+            <button onclick="printCards()">Print Animal Information</button>
+            <button onclick="exportData()">Export Data</button>
+            <label for="importFile">Import Data</label>
+            <input type="file" id="importFile" onchange="importData(event)">
+            <label for="imageUpload">Upload Farm Image</label>
+            <input type="file" id="imageUpload" accept="image/*" onchange="uploadImage()">
+            <button onclick="removeImage()">Remove Image</button>
+        </div>
+    </div>
+
+    <div style="margin-top: 10px;width:200px;">
+        <label for="opacitySlider">Adjust Map Opacity:</label>
+        <input type="range" id="opacitySlider" min="0" max="100" value="100" oninput="adjustOpacity(this.value)">
+    </div>
 
     <div class="farm-map" id="farmMap" onclick="setCoordinates(event)">
         <img id="farmImage" src="homestead.png" alt="Farm Aerial View">
@@ -187,11 +213,6 @@
 
                 <button type="submit">Submit</button>
             </form>
-
-            <button onclick="exportData()">Export Data</button>
-            <input type="file" id="importFile" onchange="importData(event)" style="margin-top: 10px;">
-            <input type="file" id="imageUpload" accept="image/*" onchange="uploadImage()" style="margin-top: 10px;">
-            <button onclick="removeImage()">Remove Image</button>
             <div id="animalCards"></div>
         </div>
 
@@ -552,6 +573,11 @@
                 };
                 reader.readAsText(file);
             }
+        }
+
+        function adjustOpacity(value) {
+            const farmImage = document.getElementById('farmImage');
+            farmImage.style.opacity = value / 100;
         }
 
         document.addEventListener('DOMContentLoaded', () => {
