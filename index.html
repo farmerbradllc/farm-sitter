@@ -149,6 +149,47 @@
             display: flex;
             gap: 10px;
         }
+        #opacitySlider {
+            width: 200px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0, 0, 0);
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 700px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        #animalCards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
     </style>
 </head>
 <body>
@@ -166,7 +207,7 @@
         </div>
     </div>
 
-    <div style="margin-top: 10px;width:200px;">
+    <div style="margin-top: 10px;">
         <label for="opacitySlider">Adjust Map Opacity:</label>
         <input type="range" id="opacitySlider" min="0" max="100" value="100" oninput="adjustOpacity(this.value)">
     </div>
@@ -208,12 +249,15 @@
                 <label for="autoWatered">Automatically Watered:</label>
                 <input type="checkbox" id="autoWatered" name="autoWatered">
 
+                <label for="videoLink">YouTube Video Link:</label>
+                <input type="text" id="videoLink" name="videoLink" placeholder="e.g., https://www.youtube.com/watch?v=example">
+
                 <input type="hidden" id="coordinates" name="coordinates">
                 <input type="hidden" id="feedCoordinates" name="feedCoordinates">
 
                 <button type="submit">Submit</button>
             </form>
-            <div id="animalCards"></div>
+            
         </div>
 
         <div class="right-column">
@@ -231,6 +275,14 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+      
+    </div>
+    <div id="animalCards"></div>
+    <div id="videoModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <iframe id="videoFrame" width="100%" height="400" frameborder="0" allowfullscreen></iframe>
         </div>
     </div>
 
@@ -250,6 +302,7 @@
             const feedType = document.getElementById('feedType').value;
             const feedLocation = document.getElementById('feedLocation').value;
             const autoWatered = document.getElementById('autoWatered').checked;
+            const videoLink = document.getElementById('videoLink').value;
             const coordinates = document.getElementById('coordinates').value || null;
             const feedCoordinates = document.getElementById('feedCoordinates').value || null;
 
@@ -269,6 +322,7 @@
                 feedType,
                 feedLocation,
                 autoWatered,
+                videoLink,
                 coordinates: coordinates ? JSON.parse(coordinates) : null,
                 feedCoordinates: feedCoordinates ? JSON.parse(feedCoordinates) : null,
                 fed: false,
@@ -304,6 +358,7 @@
                     <p><strong>Type of Feed:</strong> <span class="feedType">${animal.feedType}</span></p>
                     <p><strong>Feed Location on Map:</strong> <span class="feedLocation">${animal.feedLocation}</span></p>
                     <p><strong>Automatically Watered:</strong> <span class="autoWatered">${animal.autoWatered ? 'Yes' : 'No'}</span></p>
+                    ${animal.videoLink ? `<p><strong>Video:</strong> <span class="videoLink"><img src="play-icon.png" alt="Play" onclick="playVideo('${animal.videoLink}')"></span></p>` : ''}
                     <button onclick="editAnimal(${animal.id})">Edit</button>
                     <button onclick="deleteAnimal(${animal.id})">Delete</button>
                 `;
@@ -355,6 +410,7 @@
             document.getElementById('feedType').value = animal.feedType;
             document.getElementById('feedLocation').value = animal.feedLocation;
             document.getElementById('autoWatered').checked = animal.autoWatered;
+            document.getElementById('videoLink').value = animal.videoLink;
             document.getElementById('coordinates').value = JSON.stringify(animal.coordinates);
             document.getElementById('feedCoordinates').value = JSON.stringify(animal.feedCoordinates);
 
@@ -387,6 +443,7 @@
                         <p><strong>Type of Feed:</strong> ${animal.feedType}</p>
                         <p><strong>Feed Location on Map:</strong> ${animal.feedLocation}</p>
                         <p><strong>Automatically Watered:</strong> ${animal.autoWatered ? 'Yes' : 'No'}</p>
+                        ${animal.videoLink ? `<p><strong>Video:</strong> <img src="play-icon.png" alt="Play"></p>` : ''}
                     </div>
                 `;
             });
@@ -578,6 +635,21 @@
         function adjustOpacity(value) {
             const farmImage = document.getElementById('farmImage');
             farmImage.style.opacity = value / 100;
+            localStorage.setItem('mapOpacity', value);
+        }
+
+        function playVideo(link) {
+            const videoModal = document.getElementById('videoModal');
+            const videoFrame = document.getElementById('videoFrame');
+            videoFrame.src = link.replace('watch?v=', 'embed/');
+            videoModal.style.display = "block";
+        }
+
+        function closeModal() {
+            const videoModal = document.getElementById('videoModal');
+            const videoFrame = document.getElementById('videoFrame');
+            videoFrame.src = '';
+            videoModal.style.display = "none";
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -588,7 +660,20 @@
             if (storedImage) {
                 document.getElementById('farmImage').src = storedImage;
             }
+            const storedOpacity = localStorage.getItem('mapOpacity');
+            if (storedOpacity) {
+                document.getElementById('opacitySlider').value = storedOpacity;
+                adjustOpacity(storedOpacity);
+            }
         });
+
+        // Close the modal when clicking outside of it
+        window.onclick = function(event) {
+            const videoModal = document.getElementById('videoModal');
+            if (event.target == videoModal) {
+                closeModal();
+            }
+        };
     </script>
 
 </body>
