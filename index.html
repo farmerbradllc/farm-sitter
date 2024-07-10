@@ -204,6 +204,7 @@
             <label for="imageUpload">Upload Farm Image</label>
             <input type="file" id="imageUpload" accept="image/*" onchange="uploadImage()">
             <button onclick="removeImage()">Remove Image</button>
+            <button onclick="loadDemoData()">Load Demo Data</button>
         </div>
     </div>
 
@@ -257,7 +258,7 @@
 
                 <button type="submit">Submit</button>
             </form>
-            
+            <div id="animalCards"></div>
         </div>
 
         <div class="right-column">
@@ -276,9 +277,8 @@
                 </table>
             </div>
         </div>
-      
     </div>
-    <div id="animalCards"></div>
+
     <div id="videoModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
@@ -290,7 +290,7 @@
         let isSettingFeedLocation = false;
         let isEditing = false;
         let zoomLevel = 1;
-        const feedProximityThreshold = 2; // Threshold for considering locations as "nearby" in percentage
+        const feedProximityThreshold = 10; // Threshold for considering locations as "nearby" in percentage
 
         document.getElementById('animalForm').addEventListener('submit', function(event) {
             event.preventDefault();
@@ -629,6 +629,24 @@
                     }
                 };
                 reader.readAsText(file);
+            }
+        }
+
+        async function loadDemoData() {
+            const demoDataPath = '/demo-data.json'; // Change this to the correct path of your demo JSON file
+            try {
+                const response = await fetch(demoDataPath);
+                const demoData = await response.json();
+                if (Array.isArray(demoData)) {
+                    localStorage.setItem('animals', JSON.stringify(demoData));
+                    displayAnimals();
+                    displayIcons();
+                    displayChecklist();
+                } else {
+                    alert("Invalid demo data format.");
+                }
+            } catch (err) {
+                alert("Error loading demo data: " + err.message);
             }
         }
 
