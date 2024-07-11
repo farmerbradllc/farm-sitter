@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Farm Sitter Guide</title>
+    <title>Farm Animal Information Form</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -195,7 +195,7 @@
 <body>
 
     <div class="header">
-        <h1>Farm Sitter Guide</h1>
+        <h1>Farm Animal Information Form</h1>
         <div class="button-container">
             <button onclick="printCards()">Print Animal Information</button>
             <button onclick="exportData()">Export Data</button>
@@ -258,6 +258,7 @@
 
                 <button type="submit">Submit</button>
             </form>
+            <div id="animalCards"></div>
         </div>
 
         <div class="right-column">
@@ -277,7 +278,7 @@
             </div>
         </div>
     </div>
-    <div id="animalCards"></div>
+
     <div id="videoModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
@@ -289,7 +290,7 @@
         let isSettingFeedLocation = false;
         let isEditing = false;
         let zoomLevel = 1;
-        const feedProximityThreshold = 5; // Threshold for considering locations as "nearby" in percentage
+        const feedProximityThreshold = 2; // Threshold for considering locations as "nearby" in percentage
 
         document.getElementById('animalForm').addEventListener('submit', function(event) {
             event.preventDefault();
@@ -632,7 +633,7 @@
         }
 
         async function loadDemoData() {
-            const demoDataPath = 'demo-data.json'; // Change this to the correct path of your demo JSON file
+            const demoDataPath = 'path/to/demo-data.json'; // Change this to the correct path of your demo JSON file
             try {
                 const response = await fetch(demoDataPath);
                 const demoData = await response.json();
@@ -669,12 +670,19 @@
             videoModal.style.display = "none";
         }
 
+        function getURLParameter(name) {
+            return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search) || [,""])[1].replace(/\+/g, '%20')) || null;
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             displayAnimals();
             displayIcons();
             displayChecklist();
             const storedImage = localStorage.getItem('farmImage');
-            if (storedImage) {
+            const urlImage = getURLParameter('image');
+            if (urlImage) {
+                document.getElementById('farmImage').src = urlImage;
+            } else if (storedImage) {
                 document.getElementById('farmImage').src = storedImage;
             }
             const storedOpacity = localStorage.getItem('mapOpacity');
